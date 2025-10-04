@@ -1,0 +1,71 @@
+Plan:
+
+1.  Animal and Plant json outline two classes
+	- make them both
+	- Use the NuGet class and get it imported in.
+	- There should be certain fields that can be excluded from the json printout.
+	- These are calculated on load to save time, but to save data space are not saved
+2.  World Class
+	- create a coordinate class.
+	- build it but with Tile Array, and Herd and Tribe Lists.
+	- build a save function that turns the tiles, herds and tribes into json files
+	- write tests to verify these produce valid json.
+3.  Build a Layer Generator
+	- creates random smoothish layers with expected ranges and properties.
+	- create Temperature Function - fun math time ...
+	- Write tests to verify these functions
+4.  Tile Class
+	- Follow the json format.  It helps with organization of data.  Though it is possible to use the groups as comments if needed.
+	- build functions to populate the tile classes.
+	- *** may be fun to create these unit tests from here on out:  write tests to verify yearly values. ***
+	- "daily" rows have a current value and a function to generate the next day
+	- Habitat is an array of 13 habitat types in json file.  Change this to a true Object, so json-ifies correctly.
+	- Similarly, for game, crops, grazing, etc.
+	- PROBLEM:  Most info flows inward from above.  This is easy to store.  Rivers and habitats data use other daily data.  Rivers particularly use this data from OTHER squares.  This seems like the real technical problem I am facing in terms of efficiency.  Think on solutions:
+
+
+TODO:
+UI to view JSON files world info
+- zoom levels:
+5x5, 9x9, 13x13, 17x17, 21x21, 25x25
+- Display:
+generate any 27x27 square in a direct down 3D view.
+habitats
+rivers
+water
+mouseover displays tile info
+2D tile map version? - I think so I don't have a solution yet for 3D rivers.
+Create a Basic Editor Interface - displaying tileInfo and other dev useful info
+images for all tiles
+images for all crops
+images for all animals
+
+Add functions to fetch on request:
+- grazing - DONE
+- gatherables - DONE
+- game - DONE
+Create a function to return a dictionary of tile info for the UI.
+Make the print function print ITS contents - WAIT TILL I MAKE A UI
+Correctly implement temperature in habitats - https://github.com/hueblerw/CavemanWorld/blob/master/DynamicCavemanWorld/Assets/Classes/Habitat.cs#L171-L189 - DONE!
+
+Generate Minerals
+Generate Herds
+	- Add Speed to all animals
+	- Create Herd Object
+	- Build Herd Functions
+	- Add Herds AI
+	- Spawn a Single Herd and see what it does with time
+Generate Monsters
+Building Tile
+Natural Shleters
+
+
+BUGS:
+Why is (0, 0) not producing rain???
+We are at 1:50+ to generate a world of 200 x 200.  Can it be improved?
+Quality is almost always 10.
+World is a bit too dry
+Game is dependent on daily vegetation - leave it for now.
+Grass I think is too high.  The world has way too many game animals.
+
+

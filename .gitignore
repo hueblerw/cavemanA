@@ -1,0 +1,41 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Unity generated
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+UserSettings/
+
+# IDE junk
+.vscode/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+
+# Crash reports
+sysinfo.txt
+
+# Auto-generated VS files
+.vs/
+
+# Rider
+.idea/
+*.iml
+
+# Addressables
+[Aa]sset[Bb]undles/
+
+# Collaborate / Cache
+*.collabignore
