@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-
 namespace CavemanLand.Models.ViewModels
 {
-    public class 2DTile : MonoBehaviour
+    // Class names cannot start with a digit. Renamed to Tile2D.
+    public class Tile2D : MonoBehaviour
     {
         public SpriteRenderer groundLayer;
         public SpriteRenderer vegetationLayer;
@@ -14,7 +14,7 @@ namespace CavemanLand.Models.ViewModels
         public SpriteRenderer iconBottomLeft;
         public SpriteRenderer iconBottomRight;
 
-        public void Initialize(TileData data)
+        public void Initialize(TileData2D data)
         {
             // Update ground layer
             groundLayer.sprite = GetGroundSprite(data.groundType);
