@@ -16,7 +16,7 @@ using CavemanLand.Utility;
 public class WorldController1 : MonoBehaviour
 {
     public int x = 100;
-    public int z = 100;
+    public int z = 80;
     private World world;
 
     private GameObject loadOrCreateMenu;
@@ -32,11 +32,21 @@ public class WorldController1 : MonoBehaviour
 
     public void clickGenerateWorld()
     {
+        var parameters = fetchWorldGenerationParams();
+        toggleLoadingScreen(true);
+        StartCoroutine(GenerateWorldCoroutine(parameters.x, parameters.z, parameters.defaults));
+    }
+
+    private IEnumerator GenerateWorldCoroutine(int x, int z, Dictionary<string, object> defaults)
+    {
         Stopwatch worldBuildTime = Stopwatch.StartNew();
-        worldBuildTime.Start();
-        world = generateWorld(x, z);
+        yield return null; // Show loading screen
+
+        world = generateWorld(x, z, defaults);
+
         worldBuildTime.Stop();
         UnityEngine.Debug.Log("World built in " + worldBuildTime.ElapsedMilliseconds + " millseconds");
+
         toggleLoadingScreen(false);
         loadWorldDisplayScreen();
     }
@@ -159,17 +169,22 @@ public class WorldController1 : MonoBehaviour
         }
     }
 
-    private World generateWorld(int x, int z)
+    private World generateWorld(int x, int z, Dictionary<string, object> defaults)
     {
         loadGeneralFiles();
-        string xText = GameObject.Find("XDimensionInput").GetComponent<InputField>().text;
-        string zText = GameObject.Find("YDimensionInput").GetComponent<InputField>().text;
-        x = !xText.Equals("") ? int.Parse(xText) : 100;
-        z = !zText.Equals("") ? int.Parse(zText) : 80;
-        Dictionary<string, object> defaults = fetchDefaults();
         UnityEngine.Debug.Log("Generating World of size (" + x + ", " + z + ")");
         World world = new World(x, z, defaults);
         return world;
+    }
+
+    private (int x, int z, Dictionary<string, object> defaults) fetchWorldGenerationParams()
+    {
+        string xText = GameObject.Find("XDimensionInput").GetComponent<InputField>().text;
+        string zText = GameObject.Find("YDimensionInput").GetComponent<InputField>().text;
+        int x = !string.IsNullOrEmpty(xText) ? int.Parse(xText) : 100;
+        int z = !string.IsNullOrEmpty(zText) ? int.Parse(zText) : 80;
+        Dictionary<string, object> defaults = fetchDefaults();
+        return (x, z, defaults);
     }
 
     private void loadGeneralFiles()
