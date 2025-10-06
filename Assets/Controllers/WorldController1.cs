@@ -85,6 +85,8 @@ public class WorldController1 : MonoBehaviour
     public void confirmWorld()
     {
         UnityEngine.Debug.Log("The Player has accepted this world!");
+        UnityEngine.Debug.Log("Switching to 2D Map View");
+        SceneManager.LoadScene("2DMapScene");
     }
 
     private void loadMenus()
