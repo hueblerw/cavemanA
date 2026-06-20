@@ -194,13 +194,11 @@ namespace CavemanLand.Generators
             double change = randomDouble;
             if (squared)
             {
+                // Squared: smaller changes more common (smoother terrain)
                 change = Math.Pow(change, 2);
             }
-            else
-            {
-                // Use square root for better distribution (larger changes more common)
-                change = Math.Sqrt(change);
-            }
+            // else: use raw random value (uniform distribution)
+
             change = change * maxChange * randomSign();
             return change;
         }
