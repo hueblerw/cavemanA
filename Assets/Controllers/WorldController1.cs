@@ -85,6 +85,8 @@ public class WorldController1 : MonoBehaviour
     public void confirmWorld()
     {
         UnityEngine.Debug.Log("The Player has accepted this world!");
+        UnityEngine.Debug.Log("Exporting world data to CSV files...");
+        exportWorldDataToCSV();
         UnityEngine.Debug.Log("Switching to 2D Map View");
         SceneManager.LoadScene("2DMapScene");
     }
@@ -217,14 +219,57 @@ public class WorldController1 : MonoBehaviour
         UnityEngine.Debug.Log(ArrayPrinter.printList<string>(world.terrains.getAllMineralsInWorld()));
     }
 
-    private void saveToCsv()
+    private void exportWorldDataToCSV()
     {
-        saveArrayToCsvFiles("high_temps", ArrayPrinter.printIntArray(world.temps.highTemps));
+        string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        string exportDir = Path.Combine(Application.dataPath, "..", "WorldExports", timestamp);
+
+        try
+        {
+            // Create export directory
+            Directory.CreateDirectory(exportDir);
+            UnityEngine.Debug.Log("Exporting world data to: " + exportDir);
+
+            // Export Terrain Data
+            saveArrayToCsvFile(exportDir, "elevations", ArrayPrinter.printDoubleArray(world.terrains.elevations));
+            saveArrayToCsvFile(exportDir, "ocean_percents", ArrayPrinter.printDoubleArray(world.terrains.oceanPercents));
+            saveArrayToCsvFile(exportDir, "hill_percents", ArrayPrinter.printDoubleArray(world.terrains.hillPercents));
+
+            // Export Temperature Data
+            saveArrayToCsvFile(exportDir, "high_temps", ArrayPrinter.printIntArray(world.temps.highTemps));
+            saveArrayToCsvFile(exportDir, "low_temps", ArrayPrinter.printIntArray(world.temps.lowTemps));
+            saveArrayToCsvFile(exportDir, "summer_lengths", ArrayPrinter.printIntArray(world.temps.summerLengths));
+            saveArrayToCsvFile(exportDir, "temp_variances", ArrayPrinter.printDoubleArray(world.temps.variances));
+
+            // Export Precipitation Data
+            saveArrayToCsvFile(exportDir, "flow_rates", ArrayPrinter.printDoubleArray(world.precips.flowRates));
+
+            // Export humidity layers
+            for (int i = 0; i < world.precips.humidities.Length; i++)
+            {
+                saveArrayToCsvFile(exportDir, $"humidity_layer_{i}", ArrayPrinter.printDoubleArray(world.precips.humidities[i]));
+            }
+
+            // Export World Info Summary
+            string summaryPath = Path.Combine(exportDir, "world_summary.txt");
+            File.WriteAllText(summaryPath, world.displayInfo());
+
+            UnityEngine.Debug.Log("World data export complete! Files saved to: " + exportDir);
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError("Error exporting world data: " + e.Message);
+        }
     }
 
-    private void saveArrayToCsvFiles(string filename, string arrayString)
+    private void saveToCsv()
     {
-        string filePath = @"C:/Users/Owner/Documents/Wills Projects/CavemanGameA/test_files/" + filename + ".csv";
+        saveArrayToCsvFile(Application.dataPath, "high_temps", ArrayPrinter.printIntArray(world.temps.highTemps));
+    }
+
+    private void saveArrayToCsvFile(string directory, string filename, string arrayString)
+    {
+        string filePath = Path.Combine(directory, filename + ".csv");
         File.WriteAllText(filePath, arrayString);
     }
 
