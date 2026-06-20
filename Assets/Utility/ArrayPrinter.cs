@@ -7,12 +7,13 @@ namespace CavemanLand.Utility
         public static string printDoubleArray(double[,] array)
         {
             string output = "";
-            for (int x = 0; x < array.GetUpperBound(0); x++)
+            // Transpose: swap x and z loops so visual matches array semantics
+            for (int z = 0; z < array.GetUpperBound(1); z++)
             {
-                for (int z = 0; z < array.GetUpperBound(1); z++)
+                for (int x = 0; x < array.GetUpperBound(0); x++)
                 {
                     output += array[x, z];
-                    if (z < array.GetUpperBound(1) - 1)
+                    if (x < array.GetUpperBound(0) - 1)
                     {
                         output += ", ";
                     }
@@ -26,12 +27,13 @@ namespace CavemanLand.Utility
         public static string printIntArray(int[,] array)
         {
             string output = "";
-            for (int x = 0; x < array.GetUpperBound(0); x++)
+            // Transpose: swap x and z loops so visual matches array semantics
+            for (int z = 0; z < array.GetUpperBound(1); z++)
             {
-                for (int z = 0; z < array.GetUpperBound(1); z++)
+                for (int x = 0; x < array.GetUpperBound(0); x++)
                 {
                     output += array[x, z];
-                    if (z < array.GetUpperBound(1) - 1)
+                    if (x < array.GetUpperBound(0) - 1)
                     {
                         output += ", ";
                     }

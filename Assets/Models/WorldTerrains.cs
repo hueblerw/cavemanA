@@ -12,7 +12,7 @@ namespace CavemanLand.Models
         // Elevation constants
         private const double STARTING_ELE_RANGE = 10.0;
         private const double STARTING_ELE_MIN = -5.0;
-        private const double ELE_CHANGE_BY = 2.0;
+        private const double ELE_CHANGE_BY = 1.5;
 
         // Variables
         public double landPercentage;
@@ -20,6 +20,7 @@ namespace CavemanLand.Models
         public double[,] hillPercents;
         public double[,] oceanPercents;
         public Minerals[,] minerals;
+        public double[,] biasGuide; // For debugging terrain generation
 
         private LayerGenerator layerGenerator;
         private double maxDiff;
@@ -49,7 +50,13 @@ namespace CavemanLand.Models
         {
             System.Random randy = new System.Random();
             double startingValue = randy.NextDouble() * STARTING_ELE_RANGE + STARTING_ELE_MIN;
-            return layerGenerator.GenerateWorldLayer(World.UNLIMITED_MIN, World.UNLIMITED_MAX, ELE_CHANGE_BY, startingValue, true, LayerGenerator.mapPoles.None);
+
+            // Generate bias guide layer with horizontal streaks to vary terrain grain across the map
+            double biasGuideStart = randy.NextDouble();
+            biasGuide = layerGenerator.GenerateWorldLayer(0.0, 1.0, 0.3, biasGuideStart, false, LayerGenerator.mapPoles.None, null, null, "horizontal");
+
+            // Generate elevations using the bias guide (squared=false to use SQRT distribution)
+            return layerGenerator.GenerateWorldLayer(World.UNLIMITED_MIN, World.UNLIMITED_MAX, ELE_CHANGE_BY, startingValue, false, LayerGenerator.mapPoles.None, null, biasGuide);
         }
 
         // Note this only returns accessible minerals above the Ocean:

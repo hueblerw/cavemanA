@@ -17,6 +17,14 @@ namespace CavemanLand.Models
         {
             surface = new Dictionary<string, double>();
             mineable = new Dictionary<string, double>();
+
+            // Skip mineral generation for fully submerged tiles
+            // (Preserves potential for future sea level changes while keeping current data clean)
+            if (oceanPercent >= 1.0)
+            {
+                return;
+            }
+
             double totalStone = randomStoneTotal(oceanPercent);
             double surfaceStone = splitOffSurfaceMineral(totalStone, hillPercent);
             setMinerals("Stone", surfaceStone, totalStone - surfaceStone);

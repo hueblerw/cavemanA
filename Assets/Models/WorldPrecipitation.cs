@@ -48,7 +48,7 @@ public class WorldPrecipitation
             humidities = generateHumidities();
 
             Debug.Log("Determining which way is downhill");
-            flowDirections = calculateFlow(terrains.elevations, out flowRates);
+            flowDirections = calculateFlow(terrains.elevations, out flowRates, terrains.oceanPercents);
             upstreamDirections = determineAllUpstreamDirections(flowDirections);
 
             Debug.Log("Generating first year of rain and snow");
@@ -110,7 +110,7 @@ public class WorldPrecipitation
         return humidities;
     }
 
-    private Direction.CardinalDirections[,] calculateFlow(double[,] elevations, out double[,] flowRates)
+    private Direction.CardinalDirections[,] calculateFlow(double[,] elevations, out double[,] flowRates, double[,] oceanPercents)
     {
         Direction.CardinalDirections[,] downstreams = new Direction.CardinalDirections[World.X, World.Z];
         flowRates = new double[World.X, World.Z];
@@ -119,28 +119,35 @@ public class WorldPrecipitation
         {
             for (int z = 0; z < World.Z; z++)
             {
+                // Skip flow calculation for ocean tiles
+                if (oceanPercents[x, z] >= 1.0)
+                {
+                    downstreams[x, z] = Direction.CardinalDirections.none;
+                    flowRates[x, z] = 0.0;
+                    continue;
+                }
+
                 Coordinates myPosition = new Coordinates(x, z);
                 List<Direction.CardinalDirections> directionsAround = myPosition.getCardinalDirectionsAround();
 
-                // set default values if all tiles around this tile are higher
+                // Find the lowest neighbor
                 Direction.CardinalDirections flowTo = Direction.CardinalDirections.none;
-                double lowest = elevations[x, z];
+                double myElevation = elevations[x, z];
+                double lowestNeighbor = myElevation;
 
-                if (lowest >= 0.0)
+                foreach (Direction.CardinalDirections direction in directionsAround)
                 {
-                    foreach (Direction.CardinalDirections direction in directionsAround)
+                    Coordinates coor = myPosition.findCoordinatesInCardinalDirection(direction);
+                    if (elevations[coor.x, coor.z] < lowestNeighbor)
                     {
-                        Coordinates coor = myPosition.findCoordinatesInCardinalDirection(direction);
-                        if (elevations[coor.x, coor.z] < lowest)
-                        {
-                            lowest = elevations[coor.x, coor.z];
-                            flowTo = direction;
-                        }
+                        lowestNeighbor = elevations[coor.x, coor.z];
+                        flowTo = direction;
                     }
                 }
 
+                // flowTo will be 'none' if no lower neighbor found (this is a lake/pool)
                 downstreams[x, z] = flowTo;
-                flowRates[x, z] = calculateFlowRate(flowTo, elevations[x, z], lowest);
+                flowRates[x, z] = calculateFlowRate(flowTo, myElevation, lowestNeighbor);
             }
         }
 

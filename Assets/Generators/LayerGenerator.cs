@@ -48,23 +48,24 @@ namespace CavemanLand.Generators
             return convertDoubleArrayToInt(layer);
         }
 
-		public double[,] GenerateWorldLayer(double min, double max, double maxChange, double startingValue, bool squared, mapPoles mapPole)
+		public double[,] GenerateWorldLayer(double min, double max, double maxChange, double startingValue, bool squared, mapPoles mapPole, double[,] lowerBoundArray = null, double[,] biasGuide = null, string streakBias = "diagonal")
         {
             double[,] layer = new double[X, Z];
 			layer[0, 0] = Math.Round(startingValue, roundTo);
-            layer = BuildTopRow(layer, min, max, maxChange, squared);
-            layer = BuildLeftMostColumn(layer, min, max, maxChange, squared, mapPole);
-			layer = FillOutRemainingWorld(layer, min, max, maxChange, squared, mapPole);
-            return layer;
-        }
-        
-		public double[,] GenerateWorldLayer(double min, double max, double maxChange, double startingValue, bool squared, mapPoles mapPole, double[,] lowerBoundArray)
-        {
-            double[,] layer = new double[X, Z];
-            layer[0, 0] = Math.Round(startingValue, roundTo);
-			layer = BuildTopRow(layer, lowerBoundArray, min, max, maxChange, squared);
-			layer = BuildLeftMostColumn(layer, lowerBoundArray, min, max, maxChange, squared, mapPole);
-            layer = FillOutRemainingWorld(layer, lowerBoundArray, min, max, maxChange, squared, mapPole);
+
+            if (lowerBoundArray != null)
+            {
+                layer = BuildTopRow(layer, lowerBoundArray, min, max, maxChange, squared);
+			    layer = BuildLeftMostColumn(layer, lowerBoundArray, min, max, maxChange, squared, mapPole);
+                layer = FillOutRemainingWorld(layer, lowerBoundArray, min, max, maxChange, squared, mapPole, biasGuide, streakBias);
+            }
+            else
+            {
+                layer = BuildTopRow(layer, min, max, maxChange, squared);
+                layer = BuildLeftMostColumn(layer, min, max, maxChange, squared, mapPole);
+			    layer = FillOutRemainingWorld(layer, min, max, maxChange, squared, mapPole, biasGuide, streakBias);
+            }
+
             return layer;
         }
 
@@ -81,7 +82,7 @@ namespace CavemanLand.Generators
             return intArray;
         }
 
-		private double[,] FillOutRemainingWorld(double[,] layer, double min, double max, double maxChange, bool squared, mapPoles mapPole)
+		private double[,] FillOutRemainingWorld(double[,] layer, double min, double max, double maxChange, bool squared, mapPoles mapPole, double[,] biasGuide = null, string streakBias = "diagonal")
         {
             for (int i = 1; i < layer.GetLength(0); i++)
             {
@@ -89,14 +90,14 @@ namespace CavemanLand.Generators
                 {
                     double change = CalculateChange(randy.NextDouble(), maxChange, squared);
                     double poleShift = getPoleShift(mapPole);
-                    double average = (layer[i - 1, j] + layer[i, j - 1]) / 2.0;
+                    double average = CalculateAverage(layer, i, j, biasGuide, streakBias);
 					layer[i, j] = Math.Round(Math.Max(Math.Min(average + change + poleShift, max), min), roundTo);
                 }
             }
             return layer;
         }
 
-		private double[,] FillOutRemainingWorld(double[,] layer, double[,] lowerBoundArray, double min, double max, double maxChange, bool squared, mapPoles mapPole)
+		private double[,] FillOutRemainingWorld(double[,] layer, double[,] lowerBoundArray, double min, double max, double maxChange, bool squared, mapPoles mapPole, double[,] biasGuide = null, string streakBias = "diagonal")
         {
             for (int i = 1; i < layer.GetLength(0); i++)
             {
@@ -104,7 +105,7 @@ namespace CavemanLand.Generators
                 {
                     double change = CalculateChange(randy.NextDouble(), maxChange, squared);
                     double poleShift = getPoleShift(mapPole);
-                    double average = (layer[i - 1, j] + layer[i, j - 1]) / 2.0;
+                    double average = CalculateAverage(layer, i, j, biasGuide, streakBias);
 					layer[i, j] = Math.Round(Math.Max(Math.Min(average + change + poleShift, max), Math.Max(lowerBoundArray[i, j] + TEMP_MIN_DISTANCE, min)), roundTo);
                 }
             }
@@ -153,12 +154,52 @@ namespace CavemanLand.Generators
             return layer;
         }
 
+		private double CalculateAverage(double[,] layer, int i, int j, double[,] biasGuide, string streakBias)
+        {
+            // Determine which averaging formula to use
+            bool useHorizontal;
+
+            if (biasGuide != null)
+            {
+                // Use guide layer to determine bias per tile
+                // Threshold at 0.33 gives ~2:1 ratio favoring horizontal (diagonal is more visually prominent)
+                useHorizontal = biasGuide[i, j] > 0.33;
+            }
+            else
+            {
+                // Use fixed bias for entire layer
+                useHorizontal = (streakBias == "horizontal");
+            }
+
+            if (useHorizontal)
+            {
+                // Horizontal bias: weight left and further-left more
+                double left = layer[i - 1, j];
+                double furtherLeft = (i >= 2) ? layer[i - 2, j] : left;
+                double above = layer[i, j - 1];
+                return (left + furtherLeft + above) / 3.0;
+            }
+            else
+            {
+                // Diagonal bias: average left, above, and diagonal
+                double left = layer[i - 1, j];
+                double above = layer[i, j - 1];
+                double diagonal = layer[i - 1, j - 1];
+                return (left + above + diagonal) / 3.0;
+            }
+        }
+
 		private double CalculateChange(double randomDouble, double maxChange, bool squared)
         {
             double change = randomDouble;
             if (squared)
             {
                 change = Math.Pow(change, 2);
+            }
+            else
+            {
+                // Use square root for better distribution (larger changes more common)
+                change = Math.Sqrt(change);
             }
             change = change * maxChange * randomSign();
             return change;

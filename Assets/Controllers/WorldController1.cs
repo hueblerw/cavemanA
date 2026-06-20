@@ -87,6 +87,16 @@ public class WorldController1 : MonoBehaviour
         UnityEngine.Debug.Log("The Player has accepted this world!");
         UnityEngine.Debug.Log("Exporting world data to CSV files...");
         exportWorldDataToCSV();
+
+        // Hide all UI before switching scenes
+        loadOrCreateMenu.SetActive(false);
+        generateWorldMenu.SetActive(false);
+        loadingScreen.SetActive(false);
+        worldInfoDisplay.SetActive(false);
+
+        // Persist this GameObject (and the World data) across scene changes
+        DontDestroyOnLoad(gameObject);
+
         UnityEngine.Debug.Log("Switching to 2D Map View");
         SceneManager.LoadScene("2DMapScene");
     }
@@ -234,6 +244,7 @@ public class WorldController1 : MonoBehaviour
             saveArrayToCsvFile(exportDir, "elevations", ArrayPrinter.printDoubleArray(world.terrains.elevations));
             saveArrayToCsvFile(exportDir, "ocean_percents", ArrayPrinter.printDoubleArray(world.terrains.oceanPercents));
             saveArrayToCsvFile(exportDir, "hill_percents", ArrayPrinter.printDoubleArray(world.terrains.hillPercents));
+            saveArrayToCsvFile(exportDir, "bias_guide", ArrayPrinter.printDoubleArray(world.terrains.biasGuide));
 
             // Export Temperature Data
             saveArrayToCsvFile(exportDir, "high_temps", ArrayPrinter.printIntArray(world.temps.highTemps));
@@ -249,6 +260,19 @@ public class WorldController1 : MonoBehaviour
             {
                 saveArrayToCsvFile(exportDir, $"humidity_layer_{i}", ArrayPrinter.printDoubleArray(world.precips.humidities[i]));
             }
+
+            // Export Habitat Data (dominant habitat per tile)
+            saveArrayToCsvFile(exportDir, "dominant_habitat", exportDominantHabitats());
+            saveArrayToCsvFile(exportDir, "habitat_percentages", exportHabitatPercentages());
+
+            // Export Mineral Data (what minerals exist per tile)
+            saveArrayToCsvFile(exportDir, "minerals_surface", exportMineralsData(true));
+            saveArrayToCsvFile(exportDir, "minerals_mineable", exportMineralsData(false));
+
+            // Export River/Water Data
+            saveArrayToCsvFile(exportDir, "flow_directions", exportFlowDirections());
+            saveArrayToCsvFile(exportDir, "river_bed_depth", exportRiverBedDepth());
+            saveArrayToCsvFile(exportDir, "avg_surface_water", exportAverageSurfaceWater());
 
             // Export World Info Summary
             string summaryPath = Path.Combine(exportDir, "world_summary.txt");
@@ -271,6 +295,179 @@ public class WorldController1 : MonoBehaviour
     {
         string filePath = Path.Combine(directory, filename + ".csv");
         File.WriteAllText(filePath, arrayString);
+    }
+
+    private string exportDominantHabitats()
+    {
+        string output = "";
+        // Transpose: swap loops so visual matches array semantics
+        for (int z = 0; z < World.Z; z++)
+        {
+            for (int x = 0; x < World.X; x++)
+            {
+                var habitat = world.habitats.habitats[x, z];
+                int[] typePercents = habitat.typePercents;
+
+                // Find dominant habitat
+                int dominantIndex = 0;
+                int maxPercent = typePercents[0];
+                for (int i = 1; i < typePercents.Length; i++)
+                {
+                    if (typePercents[i] > maxPercent)
+                    {
+                        maxPercent = typePercents[i];
+                        dominantIndex = i;
+                    }
+                }
+
+                string habitatName = Habitats.habitatMapping[dominantIndex];
+                output += habitatName;
+                if (x < World.X - 1)
+                {
+                    output += ", ";
+                }
+            }
+            output += "\n";
+        }
+        return output;
+    }
+
+    private string exportHabitatPercentages()
+    {
+        string output = "";
+        // Transpose: swap loops so visual matches array semantics
+        for (int z = 0; z < World.Z; z++)
+        {
+            for (int x = 0; x < World.X; x++)
+            {
+                var habitat = world.habitats.habitats[x, z];
+                int[] typePercents = habitat.typePercents;
+
+                // Format: "Arctic:10|Tundra:30|Forest:60" (only non-zero)
+                List<string> parts = new List<string>();
+                for (int i = 0; i < typePercents.Length; i++)
+                {
+                    if (typePercents[i] > 0)
+                    {
+                        parts.Add($"{Habitats.habitatMapping[i]}:{typePercents[i]}");
+                    }
+                }
+
+                output += "\"" + string.Join("|", parts) + "\"";
+                if (x < World.X - 1)
+                {
+                    output += ", ";
+                }
+            }
+            output += "\n";
+        }
+        return output;
+    }
+
+    private string exportMineralsData(bool isSurface)
+    {
+        string output = "";
+        // Transpose: swap loops so visual matches array semantics
+        for (int z = 0; z < World.Z; z++)
+        {
+            for (int x = 0; x < World.X; x++)
+            {
+                Minerals minerals = world.terrains.minerals[x, z];
+                Dictionary<string, double> mineralDict = isSurface ? minerals.surface : minerals.mineable;
+
+                // Format: "Iron:567.8|Gold:12.3" (exclude Stone since it's everywhere)
+                List<string> parts = new List<string>();
+                foreach (var kvp in mineralDict)
+                {
+                    if (kvp.Key != "Stone") // Skip Stone - it's on every land tile
+                    {
+                        parts.Add($"{kvp.Key}:{kvp.Value}");
+                    }
+                }
+
+                output += "\"" + string.Join("|", parts) + "\"";
+                if (x < World.X - 1)
+                {
+                    output += ", ";
+                }
+            }
+            output += "\n";
+        }
+        return output;
+    }
+
+    private string exportFlowDirections()
+    {
+        string output = "";
+        // Transpose: swap loops so visual matches array semantics
+        for (int z = 0; z < World.Z; z++)
+        {
+            for (int x = 0; x < World.X; x++)
+            {
+                Direction.CardinalDirections flowDir = world.precips.flowDirections[x, z];
+                string arrow = flowDir switch
+                {
+                    Direction.CardinalDirections.up => "↑",
+                    Direction.CardinalDirections.down => "↓",
+                    Direction.CardinalDirections.right => "→",
+                    Direction.CardinalDirections.left => "←",
+                    _ => "O" // none/pool/lake
+                };
+                output += arrow;
+                if (x < World.X - 1)
+                {
+                    output += ", ";
+                }
+            }
+            output += "\n";
+        }
+        return output;
+    }
+
+    private string exportRiverBedDepth()
+    {
+        string output = "";
+        // Transpose: swap loops so visual matches array semantics
+        for (int z = 0; z < World.Z; z++)
+        {
+            for (int x = 0; x < World.X; x++)
+            {
+                double depth = world.precips.riverBanks[x, z].dryBedDepth;
+                output += depth;
+                if (x < World.X - 1)
+                {
+                    output += ", ";
+                }
+            }
+            output += "\n";
+        }
+        return output;
+    }
+
+    private string exportAverageSurfaceWater()
+    {
+        string output = "";
+        // Transpose: swap loops so visual matches array semantics
+        for (int z = 0; z < World.Z; z++)
+        {
+            for (int x = 0; x < World.X; x++)
+            {
+                // Calculate average surface water over the year
+                double sum = 0;
+                for (int day = 0; day < WorldDate.DAYS_PER_YEAR; day++)
+                {
+                    sum += world.precips.dailySurfaceWater[day][x, z];
+                }
+                double avg = Math.Round(sum / WorldDate.DAYS_PER_YEAR, World.ROUND_TO);
+                output += avg;
+                if (x < World.X - 1)
+                {
+                    output += ", ";
+                }
+            }
+            output += "\n";
+        }
+        return output;
     }
 
     private string loadJsonFileToString(string pathname)

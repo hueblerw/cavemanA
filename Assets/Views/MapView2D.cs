@@ -20,7 +20,7 @@ public class MapView2D : MonoBehaviour
     void Start()
     {
         // Find the world from the WorldController1
-        WorldController1 worldController = FindObjectOfType<WorldController1>();
+        WorldController1 worldController = FindAnyObjectByType<WorldController1>();
         if (worldController != null)
         {
             world = worldController.GetWorld();
