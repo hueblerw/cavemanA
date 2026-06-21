@@ -464,4 +464,22 @@ public class WorldPrecipitation
         return 0.0;
     }
 
+    public double GetSnowfallForDay(int x, int z, int day)
+    {
+        if (dailySnowfalls != null && day >= 0 && day < dailySnowfalls.Length)
+        {
+            return dailySnowfalls[day][x, z];
+        }
+        return 0.0;
+    }
+
+    public double GetSnowCoverForDay(int x, int z, int day)
+    {
+        if (dailySnowCover != null && day >= 0 && day < dailySnowCover.Length)
+        {
+            return dailySnowCover[day][x, z];
+        }
+        return 0.0;
+    }
+
 }

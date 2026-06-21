@@ -198,10 +198,14 @@ public class TileInspector : MonoBehaviour
         int tempToday = world.temps.GetTempForDay(x, z, currentDay);
         double precipToday = world.precips.GetPrecipForDay(x, z, currentDay);
         double surfaceWaterToday = world.precips.GetSurfaceWaterForDay(x, z, currentDay);
+        double snowfallToday = world.precips.GetSnowfallForDay(x, z, currentDay);
+        double snowCoverToday = world.precips.GetSnowCoverForDay(x, z, currentDay);
 
         output += "<b>DAILY DATA</b>\n";
         output += $"  Temperature: {tempToday}°\n";
         output += $"  Precipitation: {precipToday:F2}\n";
+        output += $"  Snowfall: {snowfallToday:F2}\n";
+        output += $"  Snow Cover: {snowCoverToday:F2}\n";
         output += $"  Surface Water: {surfaceWaterToday:F2}\n\n";
 
         // River
