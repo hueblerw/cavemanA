@@ -1,0 +1,21 @@
+Size: X = 40, Y = 30
+
+Land %: 42.17 %
+
+Minerals: Stone, Iron, Silver, Copper, Uranium, Lead, Obsidian, Tin, Gold, Zinc, Marble, Coal
+
+Habitat % Distribution: 
+Artic Desert: 0
+Tundra: 0
+Boreal: 0
+Artic Marsh: 0
+Desert: 1.25
+Plains: 10.5
+Forest: 13.31
+Swamp: 14.32
+Hot Desert: 0
+Savannah: 0.37
+Monsoon Forest: 0.69
+Rainforest: 1.74
+Ice Sheet: 0
+Ocean: 57.82

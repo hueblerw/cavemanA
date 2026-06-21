@@ -224,6 +224,11 @@ public class Habitats
         return crops;
     }
 
+    public Dictionary<string, double[]> getCrops()
+    {
+        return crops;
+    }
+
     public Dictionary<string, int> getGame(Dictionary<string, double> vegetation, double elevation, double surfaceWater)
     {
         double depth = 4.0 * Math.Max(-elevation + MAX_ELE_WITH_COAST_FISH, 0.0);

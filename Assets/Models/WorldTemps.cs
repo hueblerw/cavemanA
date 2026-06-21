@@ -159,4 +159,14 @@ public class WorldTemps
         }
     }
 
+    // Helper method to get temperature for a specific day at a tile
+    public int GetTempForDay(int x, int z, int day)
+    {
+        if (dailyTemps != null && day >= 0 && day < dailyTemps.Length)
+        {
+            return dailyTemps[day][x, z];
+        }
+        return 0;
+    }
+
 }

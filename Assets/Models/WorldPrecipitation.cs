@@ -445,4 +445,23 @@ public class WorldPrecipitation
         }
     }
 
+    // Helper methods to get daily precipitation data for a specific tile
+    public double GetPrecipForDay(int x, int z, int day)
+    {
+        if (dailyPrecip != null && day >= 0 && day < dailyPrecip.Length)
+        {
+            return dailyPrecip[day][x, z];
+        }
+        return 0.0;
+    }
+
+    public double GetSurfaceWaterForDay(int x, int z, int day)
+    {
+        if (dailySurfaceWater != null && day >= 0 && day < dailySurfaceWater.Length)
+        {
+            return dailySurfaceWater[day][x, z];
+        }
+        return 0.0;
+    }
+
 }
